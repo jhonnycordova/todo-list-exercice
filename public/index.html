@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>To DO App</title>
+        <link rel="stylesheet" href="css/style.css" type="text/css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+            integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+    </head>
+    
+    <body>
+        <div class="todo-container">
+            <h2>My To Do List</h2>
+            <div class="todo">
+                <div class="todo-header">
+                    <input type="text" name="name" id="name">
+                    <button type="button" id="btnAddTask"><span class="fas fa-plus"></span></button>
+                </div>
+                <ul class="todo-list" id="todoList">
+                    
+                </ul>
+            </div>
+        </div>
+    </body>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script>
+        var url = 'http://localhost:3000';
+
+        getTasks();
+
+        document.getElementById("btnAddTask").addEventListener("click", function() {
+            let data = { name: document.getElementById("name").value }
+            fetch(url + '/tasks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then((res) => res.json())
+            .then(data => {
+                getTasks();
+                document.getElementById("name").value = '';
+            })
+        });
+
+        $(".todo-list").on('click', 'a.remove', function(e){
+            e.preventDefault();
+            deleteTask($(this).data('task'));
+        });
+
+        
+
+        $(".todo-list").on('click', 'a.edit', function(e){
+            e.preventDefault();
+            let taskId = $(this).data('task');
+            console.log('taskId', taskId);
+            $(`#input-${taskId}`).css('display', '');
+            $(`#title-${taskId}`).css('display', 'none');
+            $(`#btn-cancel-${taskId}`).css('display', '');
+            $(`#btn-save-${taskId}`).css('display', '');
+            $(`#btn-edit-${taskId}`).css('display', 'none');
+            $(`#btn-remove-${taskId}`).css('display', 'none');
+        });
+
+        $(".todo-list").on('click', 'span.remove', function(e){
+            e.preventDefault();
+            let taskId = $(this).data('task');
+            
+            $(`#input-${taskId}`).css('display', 'none');
+            $(`#title-${taskId}`).css('display', '');
+            $(`#btn-cancel-${taskId}`).css('display', 'none');
+            $(`#btn-save-${taskId}`).css('display', 'none');
+            $(`#btn-edit-${taskId}`).css('display', '');
+            $(`#btn-remove-${taskId}`).css('display', '');
+        });
+
+        $(".todo-list").on('click', 'span.edit', function(e){
+            e.preventDefault();
+            let taskId = $(this).data('task');
+            updateTask(taskId);
+        });
+
+        function getTasks () {
+            var todoList = document.getElementById('todoList');
+            todoList.innerHTML = '';
+            fetch(url + '/tasks').then((res) => res.json())
+            .then(data => {
+                data.tasks.forEach(task => {
+                    todoList.innerHTML += `
+                    <li class="todo-list-item">
+                        <div class="todo-list-item-name">
+                            <span id="title-${task._id}">${task.name}</span>
+                            <input id="input-${task._id}" type="text" style="display:none" value="${task.name}">
+                        </div>
+                        
+                        <a href="#" data-task='${task._id}' id="btn-edit-${task._id}" class="edit">
+                            <span class="fas fa-edit"></span>
+                        </a>
+                        <a href="#" data-task='${task._id}' id="btn-remove-${task._id}"class="remove">
+                            <span class="fas fa-times"></span>
+                        </a>
+
+                        <span data-task='${task._id}' style="display:none" id="btn-save-${task._id}"  class="edit">
+                            Save
+                        </span>
+                        <span data-task='${task._id}' style="display:none" id="btn-cancel-${task._id}" class="remove">
+                            Cancel
+                        </span>
+                        
+                    </li>
+                    `
+                });
+            })
+        }
+
+        function deleteTask (id) {
+            fetch(url + '/tasks/' + id, {
+                method: 'DELETE',
+            }).then((res) => res.json())
+            .then(data => getTasks())
+        }
+
+        function updateTask (id) {
+            let data = { name: document.getElementById("input-"+id).value }
+            fetch(url + '/tasks/' + id, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then((res) => getTasks())
+        }
+    </script>
+</html>
