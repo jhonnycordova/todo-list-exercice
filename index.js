@@ -55,6 +55,7 @@ app.put('/tasks/:id', (req, res) => {
 
 app.patch('/tasks/:id', (req, res) => {
     const taskId = req.params.id;
+
     db.update({ _id: taskId }, { $set: { order: req.body.order } }, {}, function () {
         res.status(204).json({
             message: "Task updated!",
