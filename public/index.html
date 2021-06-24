@@ -22,8 +22,17 @@
         </div>
     </body>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
         var url = 'http://localhost:3000';
+        $( "#todoList" ).sortable({
+
+            update: function( event, ui ) {
+                let taskId = $(ui.item).data('task');
+                console.log(taskId, ui.item.index());
+                updateTaskOrder(taskId, ui.item.index());
+            }
+        });
 
         getTasks();
 
@@ -86,7 +95,7 @@
             .then(data => {
                 data.tasks.forEach(task => {
                     todoList.innerHTML += `
-                    <li class="todo-list-item">
+                    <li class="todo-list-item" data-task='${task._id}'>
                         <div class="todo-list-item-name">
                             <span id="title-${task._id}">${task.name}</span>
                             <input id="input-${task._id}" type="text" style="display:none" value="${task.name}">
@@ -128,6 +137,17 @@
                 },
                 body: JSON.stringify(data)
             }).then((res) => getTasks())
+        }
+
+        function updateTaskOrder (id, order) {
+            let data = { order }
+            fetch(url + '/tasks/' + id, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            }).then((res) => console.log('Orden actualizado'))
         }
     </script>
 </html>

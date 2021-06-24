@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.get('/tasks', (req, res) => {
-    db.find({}, function(err, records) {
+    db.find({}).sort({order: 1}).exec(function(err, records) {
         res.status(200).json({
             message: "Task listed!",
             tasks: records 
@@ -22,7 +22,10 @@ app.get('/tasks', (req, res) => {
 });
 
 app.post('/tasks', (req, res) => {
-    const task = { name: req.body.name };
+    const task = { name: req.body.name, order: ''};
+    db.count({}, function (err, count) {
+        task.order = count + 1;
+    });
     db.insert(task, (err, record) => {
         res.status(200).json({
            message: "Task created!",
@@ -44,6 +47,15 @@ app.put('/tasks/:id', (req, res) => {
     const taskId = req.params.id;
     const task = { name: req.body.name };
     db.update({ _id: taskId }, task, {}, function () {
+        res.status(204).json({
+            message: "Task updated!",
+        });
+    });
+});
+
+app.patch('/tasks/:id', (req, res) => {
+    const taskId = req.params.id;
+    db.update({ _id: taskId }, { $set: { order: req.body.order } }, {}, function () {
         res.status(204).json({
             message: "Task updated!",
         });
